@@ -15,18 +15,40 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for Cuestionario LLM
+ * Capability definitions for Cuestionario LLM
+ *
+ * Documentation: {@link https://moodledev.io/docs/apis/subsystems/access}
  *
  * @package    mod_cuestionariollm
+ * @category   access
  * @copyright  2024 GONZALO ROMERO <gonzalo.romeros@alumnos.upm.es>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component    = 'mod_cuestionariollm';
-$plugin->release      = '1.0';
-$plugin->version      = 2024071100;
-$plugin->requires     = 2022112800;
-$plugin->supported    = [401, 401];
-$plugin->maturity     = MATURITY_STABLE;
+$capabilities = [
+
+    'mod/cuestionariollm:view' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'guest' => CAP_ALLOW,
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
+    'mod/cuestionariollm:addinstance' => [
+        'captype' => 'write',
+        'riskbitmask' => RISK_XSS,
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'moodle/course:manageactivities',
+    ],
+];

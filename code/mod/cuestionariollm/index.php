@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - https://moodle.org/
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,79 +12,69 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Display information about all the mod_cuestionariollm modules in the requested course.
+ * Display information about all the Cuestionario LLM modules in the requested course
  *
- * @package     mod_cuestionariollm
- * @copyright   2024 Gonzalo Romero <gonzalo.romeros@alumnos.upm.es>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_cuestionariollm
+ * @copyright  2024 GONZALO ROMERO <gonzalo.romeros@alumnos.upm.es>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require(__DIR__.'/../../config.php');
-
-require_once(__DIR__.'/lib.php');
+require(__DIR__ . '/../../config.php');
 
 $id = required_param('id', PARAM_INT);
 
-$course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 require_course_login($course);
 
-$coursecontext = context_course::instance($course->id);
+\mod_cuestionariollm\event\course_module_instance_list_viewed::create_from_course($course)->trigger();
 
-$event = \mod_cuestionariollm\event\course_module_instance_list_viewed::create(array(
-    'context' => $modulecontext
-));
-$event->add_record_snapshot('course', $course);
-$event->trigger();
-
-$PAGE->set_url('/mod/cuestionariollm/index.php', array('id' => $id));
+$PAGE->set_url('/mod/cuestionariollm/index.php', ['id' => $id]);
 $PAGE->set_title(format_string($course->fullname));
 $PAGE->set_heading(format_string($course->fullname));
-$PAGE->set_context($coursecontext);
 
 echo $OUTPUT->header();
 
 $modulenameplural = get_string('modulenameplural', 'mod_cuestionariollm');
 echo $OUTPUT->heading($modulenameplural);
 
-$cuestionariollms = get_all_instances_in_course('cuestionariollm', $course);
+$instances = get_all_instances_in_course('cuestionariollm', $course);
 
-if (empty($cuestionariollms)) {
-    notice(get_string('no$cuestionariollminstances', 'mod_cuestionariollm'), new moodle_url('/course/view.php', array('id' => $course->id)));
+if (empty($instances)) {
+    notice(get_string('thereareno', 'moodle', $modulenameplural),
+        new moodle_url('/course/view.php', ['id' => $course->id]));
 }
 
 $table = new html_table();
 $table->attributes['class'] = 'generaltable mod_index';
 
-if ($course->format == 'weeks') {
-    $table->head  = array(get_string('week'), get_string('name'));
-    $table->align = array('center', 'left');
-} else if ($course->format == 'topics') {
-    $table->head  = array(get_string('topic'), get_string('name'));
-    $table->align = array('center', 'left', 'left', 'left');
+$usesections = course_format_uses_sections($course->format);
+
+$table = new html_table();
+$table->attributes['class'] = 'generaltable mod_index';
+
+if ($usesections) {
+    $strsectionname = get_string('sectionname', 'format_'.$course->format);
+    $table->head  = [$strsectionname, get_string('name')];
+    $table->align = ['left', 'left'];
 } else {
-    $table->head  = array(get_string('name'));
-    $table->align = array('left', 'left', 'left');
+    $table->head  = [get_string('name')];
+    $table->align = ['left'];
 }
 
-foreach ($cuestionariollms as $cuestionariollm) {
-    if (!$cuestionariollm->visible) {
-        $link = html_writer::link(
-            new moodle_url('/mod/cuestionariollm/view.php', array('id' => $cuestionariollm->coursemodule)),
-            format_string($cuestionariollm->name, true),
-            array('class' => 'dimmed'));
-    } else {
-        $link = html_writer::link(
-            new moodle_url('/mod/cuestionariollm/view.php', array('id' => $cuestionariollm->coursemodule)),
-            format_string($cuestionariollm->name, true));
-    }
+foreach ($instances as $instance) {
+    $attrs = $instance->visible ? [] : ['class' => 'dimmed']; // Hidden modules are dimmed.
+    $link = html_writer::link(
+        new moodle_url('/mod/cuestionariollm/view.php', ['id' => $instance->coursemodule]),
+        format_string($instance->name, true),
+        $attrs);
 
-    if ($course->format == 'weeks' || $course->format == 'topics') {
-        $table->data[] = array($cuestionariollm->section, $link);
+    if ($usesections) {
+        $table->data[] = [$instance->section, $link];
     } else {
-        $table->data[] = array($link);
+        $table->data[] = [$link];
     }
 }
 

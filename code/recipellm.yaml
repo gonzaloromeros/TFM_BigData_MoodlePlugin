@@ -1,0 +1,192 @@
+component: mod_cuestionariollm
+
+name: Cuestionario LLM
+
+release: "0.1.0"
+
+requires: "4.0"
+
+maturity: MATURITY_BETA
+
+copyright: 2024 Gonzalo Romero <gonzalo.romeros@alumnos.upm.es>
+
+features:
+  readme: true
+  license: true
+  settings: true
+  upgrade: true
+  upgradelib: true
+  install: true
+  uninstall: true
+
+privacy:
+  haspersonaldata: true
+  uselegacypolyfill: false
+  meta:
+    dbfields:
+      cuestionariollm_responses:
+        - userid
+        - response
+        - timecreated
+    userpreferences:
+      - cuestionariollm_preference
+    subsystems:
+      - logstore
+    external:
+      - externalapi
+
+phpunit_tests:
+  - classname: cuestionariollm_response_test
+
+auth_features:
+  config_ui: true
+  description: Cuestionario LLM auth plugin description
+  can_change_password: 'false'
+  can_edit_profile: false
+  prevent_local_passwords: false
+  is_synchronised_with_external: false
+  can_reset_password: true
+  can_signup: true
+  can_confirm: true
+  can_be_manually_set: false
+
+block_features:
+  edit_form: true
+  instance_allow_multiple: false
+  applicable_formats:
+    - page: all
+      allowed: false
+    - page: course-view
+      allowed: true
+    - page: course-view-social
+      allowed: false
+
+mod_features:
+  gradebook: true
+  file_area: true
+  navigation: true
+  backup_moodle2:
+    settingslib: true
+    backup_elements:
+      - name: cuestionario
+    restore_elements:
+      - name: cuestionario
+        path: /path/to/cuestionario
+
+capabilities:
+  - name: view
+    title: View cuestionario LLM
+    captype: view
+    contextlevel: CONTEXT_MODULE
+    archetypes:
+      - role: student
+        permission: CAP_ALLOW
+      - role: editingteacher
+        permission: CAP_ALLOW
+    clonepermissionsfrom: moodle/course:view
+
+  - name: edit
+    title: Edit cuestionario LLM
+    captype: write
+
+  - name: manage
+    title: Manage cuestionario LLM
+    captype: write
+    contextlevel: CONTEXT_COURSE
+    archetypes:
+      - role: manager
+        permission: CAP_ALLOW
+      - role: editingteacher
+        permission: CAP_ALLOW
+
+message_providers:
+  - name: submission
+    title: Submission message
+    capability: mod/cuestionariollm:emailnotifysubmission
+  - name: expiry
+    title: Expiry message
+
+cli_scripts:
+  - filename: cuestionariollm_cleanup
+  - filename: cuestionariollm_sync
+
+observers:
+  - eventname: \mod_cuestionariollm\event\response_submitted
+    callback: \mod_cuestionariollm\observer::response_submitted
+    includefile: "/mod/cuestionariollm/classes/observer.php"
+    priority: 200
+    internal: true
+
+  - eventname: \core\event\course_module_viewed
+    callback: \mod_cuestionariollm\observer::course_module_viewed
+    internal: false
+
+events:
+  - eventname: response_submitted
+    extends: \core\event\base
+
+  - eventname: course_module_viewed
+    extends: \core\event\course_module_viewed
+
+  - eventname: course_module_instance_list_viewed
+    extends: \core\event\course_module_instance_list_viewed
+
+mobile_addons:
+  - name: 'cuestionariollm_mobile'
+    dependencies:
+      - name: mod_cuestionariollm
+
+lang_strings:
+  - id: pluginname
+    text: Cuestionario LLM
+  - id: pluginnameplural
+    text: Cuestionarios LLM
+  - id: view
+    text: View
+  - id: submitresponse
+    text: Submit Response
+  - id: response
+    text: Response
+
+external:
+  - name: list_responses
+    desc: Returns a list of user responses
+    type: read
+    ajax: 'true'
+    loginrequired: 'true'
+    readonlysession: 'false'
+    parameters:
+      - name: pagenum
+        type: PARAM_INT
+        desc: Page number to return
+      - name: perpage
+        type: PARAM_INT
+        desc: Number of responses per page
+        required: false
+        default: 10
+    returns:
+      - multiple:
+        - single:
+          - name: id
+            type: PARAM_INT
+            desc: Response ID
+          - name: response
+            type: PARAM_RAW
+            desc: Response text
+          - name: userid
+            type: PARAM_INT
+            desc: User ID
+
+services:
+  - name: Responses management
+    shortname: responses_management
+    functions:
+      - mod_cuestionariollm_list_responses
+    requiredcapability: mod/cuestionariollm:view
+    enabled: 'true'
+    downloadfiles: 'false'
+    uploadfiles: 'false'
+
+templates:
+  - response_view
+  - response_list

@@ -14,19 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_cuestionariollm\event;
+
 /**
- * Version information for Cuestionario LLM
+ * Event course_module_instance_list_viewed
  *
  * @package    mod_cuestionariollm
  * @copyright  2024 GONZALO ROMERO <gonzalo.romeros@alumnos.upm.es>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class course_module_instance_list_viewed extends \core\event\course_module_instance_list_viewed {
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component    = 'mod_cuestionariollm';
-$plugin->release      = '1.0';
-$plugin->version      = 2024071100;
-$plugin->requires     = 2022112800;
-$plugin->supported    = [401, 401];
-$plugin->maturity     = MATURITY_STABLE;
+    /**
+     * Create the event from course record.
+     *
+     * @param \stdClass $course
+     * @return course_module_instance_list_viewed
+     */
+    public static function create_from_course(\stdClass $course) {
+        $params = [
+            'context' => \context_course::instance($course->id),
+        ];
+        /** @var course_module_instance_list_viewed $event */
+        $event = static::create($params);
+        $event->add_record_snapshot('course', $course);
+        return $event;
+    }
+}

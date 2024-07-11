@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - https://moodle.org/
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,26 +12,18 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * The main mod_cuestionariollm configuration form.
- *
- * @package     mod_cuestionariollm
- * @copyright   2024 Gonzalo Romero <gonzalo.romeros@alumnos.upm.es>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
 
 /**
- * Module instance settings form.
+ * Form for adding and editing Cuestionario LLM instances
  *
- * @package     mod_cuestionariollm
- * @copyright   2024 Gonzalo Romero <gonzalo.romeros@alumnos.upm.es>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_cuestionariollm
+ * @copyright  2024 GONZALO ROMERO <gonzalo.romeros@alumnos.upm.es>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_cuestionariollm_mod_form extends moodleform_mod {
 
@@ -43,38 +35,23 @@ class mod_cuestionariollm_mod_form extends moodleform_mod {
 
         $mform = $this->_form;
 
-        // Adding the "general" fieldset, where all the common settings are shown.
+        // General fieldset.
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-        // Adding the standard "name" field.
-        $mform->addElement('text', 'name', get_string('cuestionariollmname', 'mod_cuestionariollm'), array('size' => '64'));
-
-        if (!empty($CFG->formatstringstriptags)) {
-            $mform->setType('name', PARAM_TEXT);
-        } else {
-            $mform->setType('name', PARAM_CLEANHTML);
-        }
-
+        $mform->addElement('text', 'name', get_string('name'), ['size' => '64']);
+        $mform->setType('name', empty($CFG->formatstringstriptags) ? PARAM_CLEANHTML : PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
-        $mform->addHelpButton('name', 'cuestionariollmname', 'mod_cuestionariollm');
 
-        // Adding the standard "intro" and "introformat" fields.
-        if ($CFG->branch >= 29) {
+        if (!empty($this->_features->introeditor)) {
+            // Description element that is usually added to the General fieldset.
             $this->standard_intro_elements();
-        } else {
-            $this->add_intro_editor();
         }
 
-        // Adding the rest of mod_cuestionariollm settings, spreading all them into this fieldset
-        // ... or adding more fieldsets ('header' elements) if needed for better logic.
-        $mform->addElement('static', 'label1', 'cuestionariollmsettings', get_string('cuestionariollmsettings', 'mod_cuestionariollm'));
-        $mform->addElement('header', 'cuestionariollmfieldset', get_string('cuestionariollmfieldset', 'mod_cuestionariollm'));
-
-        // Add standard elements.
+        // Other standard elements that are displayed in their own fieldsets.
+        $this->standard_grading_coursemodule_elements();
         $this->standard_coursemodule_elements();
 
-        // Add standard buttons.
         $this->add_action_buttons();
     }
 }
