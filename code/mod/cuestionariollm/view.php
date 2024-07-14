@@ -48,7 +48,43 @@ require_login($course, true, $cm);
 $PAGE->set_url('/mod/cuestionariollm/view.php', ['id' => $cm->id]);
 $PAGE->set_title(format_string($moduleinstance->name));
 $PAGE->set_heading(format_string($course->fullname));
+header('Content-Type: text/html; charset=utf-8');
 
-echo $OUTPUT->header();
+// Indicar qué pdf se debe procesar y en qué ruta se encuentra
+$path = 'D:/Uni/Master/TFM/';
+$filename = 'Memoria_TFG.pdf';
 
-echo $OUTPUT->footer();
+$reportcontent = optional_param('reportcontent', '', PARAM_RAW);
+$text = cuestionariollm_process_pdf($path . $filename);
+if(!empty($text)) {
+    $reportcontent = $text;
+}
+
+// Checks if the config contains an API key
+$apikey = get_config('mod_cuestionariollm', 'apikey');
+if (empty($apikey)) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->notification(get_string('missingapikey', 'mod_cuestionariollm'), 'notifyproblem');
+    echo $OUTPUT->footer();
+    exit;
+}
+
+// Checks if the report content is available, being a text or a transcribed pdf
+if ($reportcontent) {
+    $questions = cuestionariollm_generate_questions($reportcontent);
+    $formatted_questions = cuestionariollm_format_questions($questions);
+
+    $quiz = create_moodle_quiz($cm, 'Cuestionario LLM - ' . $filename, $formatted_questions);
+
+    echo $OUTPUT->header();
+    echo $OUTPUT->notification('Cuestionario creado con éxito! <a href="'.$CFG->wwwroot.'/mod/quiz/view.php?id='.$quiz->cmid.'">Ir al cuestionario</a>', 'notifysuccess');
+    echo $OUTPUT->footer();
+} else {
+    echo $OUTPUT->header();
+    echo '<form method="post">';
+    echo '<textarea name="reportcontent" rows="20" cols="80"></textarea>';
+    echo '<br>';
+    echo '<input type="submit" value="Enviar">';
+    echo '</form>';
+    echo $OUTPUT->footer();
+}

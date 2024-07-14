@@ -25,9 +25,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['apikey'] = 'Api Key - OpenAI';
+$string['apikey_desc'] = 'Introduce tu Key de OpenAI aquí.';
 $string['cuestionariollm:addinstance'] = 'Add a new Cuestionario LLM';
 $string['cuestionariollm:view'] = 'View Cuestionario LLM';
+$string['missingapikey'] = 'Falta la clave de OpenAI.';
 $string['modulename'] = 'Cuestionario LLM';
 $string['modulenameplural'] = 'Cuestionarios LLM';
+$string['pdfsubmission'] = 'Memoria PDF';
 $string['pluginadministration'] = 'Cuestionario LLM administration';
 $string['pluginname'] = 'Cuestionario LLM';
+$string['reportcontent'] = 'Contenido Memoria';

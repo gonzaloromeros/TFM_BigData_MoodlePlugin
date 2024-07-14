@@ -48,6 +48,12 @@ class mod_cuestionariollm_mod_form extends moodleform_mod {
             $this->standard_intro_elements();
         }
 
+        $mform->addRule('name', null, 'required', null, 'client');
+        $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
+        
+        $mform->setType('reportcontent', PARAM_RAW);
+        $mform->addRule('reportcontent', null, 'required', null, 'client');
+        
         // Other standard elements that are displayed in their own fieldsets.
         $this->standard_grading_coursemodule_elements();
         $this->standard_coursemodule_elements();
