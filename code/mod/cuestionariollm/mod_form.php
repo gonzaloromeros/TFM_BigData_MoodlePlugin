@@ -48,6 +48,7 @@ class mod_cuestionariollm_mod_form extends moodleform_mod {
             $this->standard_intro_elements();
         }
 
+        $mform->addElement('textarea', 'reportcontent', get_string('reportcontent', 'cuestionariollm'));
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
         
