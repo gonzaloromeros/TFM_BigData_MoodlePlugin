@@ -23,7 +23,6 @@
  * @copyright  2024 GONZALO ROMERO <gonzalo.romeros@alumnos.upm.es>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 require_once($CFG->libdir.'/filelib.php');
 require_once(__DIR__ . '/vendor/autoload.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
@@ -157,6 +156,7 @@ function generate_quiz($courseid, $userid) {
     }
 }
 
+
 /**
  * Gets the pdf content of the report from the database.
  *
@@ -177,6 +177,12 @@ function get_pdf_content($pathnamehash) {
 }
 
 
+/**
+ * Gets the pdf text of the report from the path.
+ *
+ * @param string $pdf_path Path of the student report pdf
+ * @return string $text Text content of the pdf
+ */
 function cuestionariollm_process_pdf($pdf_path) {
     $parser = new \Smalot\PdfParser\Parser();
     $pdf = $parser->parseFile($pdf_path);
@@ -185,6 +191,12 @@ function cuestionariollm_process_pdf($pdf_path) {
 }
 
 
+/**
+ * Makes the request to the OpenAI API.
+ *
+ * @param string $text Text content of the pdf
+ * @return string $content Response of the OpenAI API
+ */
 function cuestionariollm_generate_questions($text) {
     global $CFG;
     $apikey = get_config('mod_cuestionariollm', 'apikey');
@@ -229,6 +241,12 @@ function cuestionariollm_generate_questions($text) {
 }
 
 
+/**
+ * Trys to find regex patterns in the response to section and format the questions.
+ *
+ * @param string $content Text content of the pdf
+ * @return string $formatted_questions Structurated array of the questions
+ */
 function cuestionariollm_format_questions($content) {
     $questions = explode("\n\n", $content);
     $formatted_questions = [];
@@ -282,6 +300,14 @@ function cuestionariollm_format_questions($content) {
 }
 
 
+/**
+ * Create the quiz object and stores it in the database.
+ *
+ * @param mixed $cm Course module where the LLMQuiz is
+ * @param string $quizname Name of the quiz to be generated
+ * @param string $questions Structurated array of the questions
+ * @return stdClass $quiz Quiz object
+ */
 function create_moodle_quiz($cm, $quizname, $questions) {
     global $DB, $USER;
 
@@ -364,6 +390,13 @@ function create_moodle_quiz($cm, $quizname, $questions) {
 }
 
 
+/**
+ * Creates the object of a question and stores it in the database.
+ *
+ * @param mixed $quiz Quiz object
+ * @param string $categoryid Id of the category of the question
+ * @param string $questiondata Structurated array with one questions and its awnsers
+ */
 function create_quiz_question($quiz, $categoryid, $questiondata) {
     global $DB, $USER;
 
